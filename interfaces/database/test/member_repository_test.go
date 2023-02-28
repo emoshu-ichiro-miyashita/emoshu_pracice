@@ -87,36 +87,66 @@ func TestFindById(t *testing.T) {
 		FullName:           "emoshu company",
 		KanaName:           "emoshu company",
 		Motto:              "頑張ります",
-		Biography:          "",
+		Biography:          "気分上々",
 		StartDate:          time.Now(),
 		EndDate:            nil,
 		EmploymentStatusID: 1,
-		EmploymentStatus: domain.EmploymentStatus{
-			ID:               0,
-			CreatedAt:        time.Now(),
-			UpdatedAt:        time.Now(),
-			EmploymentStatus: "",
-		},
+		// EmploymentStatus: domain.EmploymentStatus{
+		// 	ID:               1,
+		// 	CreatedAt:        time.Now(),
+		// 	UpdatedAt:        time.Now(),
+		// 	EmploymentStatus: "社員ステータス1",
+		// },
 		StatusID: 1,
-		Status: domain.Status{
-			ID:        0,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			Status:    "",
-		},
+		// Status: domain.Status{
+		// 	ID:        1,
+		// 	CreatedAt: time.Now(),
+		// 	UpdatedAt: time.Now(),
+		// 	Status:    "ステータス1",
+		// },
 	}
 	rows := sqlmock.
-		NewRows([]string{"id", "no", "profileImg", "fullName", "kanaName", "motto", "biography", "startDate", "endDate", "employmentStatusID", "employmentStatus", "statusID", "status"}).
-		AddRow(member.ID, member.No, member.ProfileImg, member.FullName, member.KanaName, member.Motto, member.Biography, member.StartDate, member.EndDate, member.EmploymentStatusID, member.EmploymentStatus, member.StatusID, member.Status)
+		NewRows([]string{
+			"id", 
+			"no", 
+			"profileImg", 
+			"fullName", 
+			"kanaName", 
+			"motto", 
+			"biography", 
+			"startDate", 
+			"endDate", 
+			"employmentStatusID", 
+			// "employmentStatus", 
+			"statusID", 
+			// "status"
+			}).
+		AddRow(
+			member.ID, 
+			member.No, 
+			member.ProfileImg, 
+			member.FullName, 
+			member.KanaName, 
+			member.Motto, 
+			member.Biography, 
+			member.StartDate, 
+			member.EndDate, 
+			member.EmploymentStatusID, 
+			// member.EmploymentStatus, 
+			member.StatusID, 
+			// member.Status
+		)
 	// mock.ExpectBegin()
 	// mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "members" ("id", "no", "profileImg", "fullName", "kanaName", "motto", "biography", "startDate", "endDate") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`)).WillReturnRows(rows)
 	// mock.ExpectCommit()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "members" WHERE id = $1 ORDER BY "id" LIMIT 1`)).WithArgs(member.ID).WillReturnRows(rows)
+	query := "SELECT `members`.`id`,`members`.`created_at`,`members`.`updated_at`,`members`.`no`,`members`.`profile_img`,`members`.`full_name`,`members`.`kana_name`,`members`.`motto`,`members`.`biography`,`members`.`start_date`,`members`.`end_date`,`members`.`employment_status_id`,`members`.`status_id`,`EmploymentStatus`.`id` AS `EmploymentStatus__id`,`EmploymentStatus`.`created_at` AS `EmploymentStatus__created_at`,`EmploymentStatus`.`updated_at` AS `EmploymentStatus__updated_at`,`EmploymentStatus`.`employment_status` AS `EmploymentStatus__employment_status`,`Status`.`id` AS `Status__id`,`Status`.`created_at` AS `Status__created_at`,`Status`.`updated_at` AS `Status__updated_at`,`Status`.`status` AS `Status__status` FROM `members` LEFT JOIN `employment_statuses` `EmploymentStatus` ON `members`.`employment_status_id` = `EmploymentStatus`.`id` LEFT JOIN `statuses` `Status` ON `members`.`status_id` = `Status`.`id` WHERE `members`.`id` = ? ORDER BY `members`.`id` LIMIT 1"
+	mock.ExpectQuery(regexp.QuoteMeta(query)).WithArgs("1").WillReturnRows(rows)
 
 	repo := &database.MemberRepository{DBHandler: newDummyHandler(mockDB)}
 	m, err := repo.FindById("1")
-	fmt.Println(m, "membr")
+	fmt.Println(m, "member")
+	
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("Test Find User: %v", err)
 	}
